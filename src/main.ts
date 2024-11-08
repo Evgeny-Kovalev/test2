@@ -27,7 +27,7 @@ async function bootstrap() {
 	const port = envService.get('PORT');
 
 	const config = new DocumentBuilder()
-		.setTitle('Shop backend')
+		.setTitle('Shop backend2')
 		.setVersion('1.0')
 		.addBearerAuth()
 		.build();
