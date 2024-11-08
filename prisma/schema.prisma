@@ -1,0 +1,119 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+// Looking for ways to speed up your queries, or scale easily with your serverless or edge functions?
+// Try Prisma Accelerate: https://pris.ly/cli/accelerate-init
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Category {
+  id          Int    @id @default(autoincrement())
+  slug        String @unique
+  name        String
+  imgUrl      String
+  description String
+
+  parentCategory   Category?  @relation("ParentSubCategories", fields: [parentCategoryId], references: [id], onDelete: SetNull)
+  parentCategoryId Int?
+  subCategories    Category[] @relation("ParentSubCategories")
+
+  categoryType CategoryType @default(interiorDoors)
+
+  isVisible Boolean @default(true)
+
+  products    Product[]
+  collections Collection[]
+}
+
+enum CategoryType {
+  interiorDoors
+  exteriorDoors
+}
+
+model Product {
+  id          Int     @id @default(autoincrement())
+  slug        String  @unique
+  name        String
+  imgUrl      String
+  description String
+  isVisible   Boolean @default(true)
+
+  category   Category @relation(fields: [categoryId], references: [id])
+  categoryId Int
+
+  variants ProductVariant[]
+  params   Attribute[]
+
+  collections Collection[]
+}
+
+model ProductVariant {
+  id            Int    @id @default(autoincrement())
+  imgUrl        String
+  price         Int?
+  discountPrice Int?
+
+  product   Product? @relation(fields: [productId], references: [id], onDelete: Cascade)
+  productId Int
+
+  attributes Attribute[]
+}
+
+model Attribute {
+  id Int @id @default(autoincrement())
+
+  key   AttributeKey @relation(fields: [keyId], references: [id])
+  keyId Int
+
+  value   AttributeValue @relation(fields: [valueId], references: [id])
+  valueId Int
+
+  variants ProductVariant[]
+  products Product[]
+
+  @@unique([keyId, valueId])
+}
+
+model AttributeKey {
+  id     Int     @id @default(autoincrement())
+  value  String  @unique
+  label  String
+  imgUrl String?
+
+  attribute Attribute[]
+}
+
+model AttributeValue {
+  id    Int    @id @default(autoincrement())
+  value String @unique
+
+  attribute Attribute[]
+}
+
+enum Role {
+  ADMIN
+  GUEST
+}
+
+model User {
+  id           Int     @id @default(autoincrement())
+  email        String  @unique
+  password     String
+  refreshToken String?
+  roles        Role[]  @default([GUEST])
+}
+
+model Collection {
+  id    Int    @id @default(autoincrement())
+  title String
+
+  products   Product[]
+  categories Category[]
+}
